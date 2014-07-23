@@ -30,10 +30,10 @@
 
 struct _Keylogger {
   Display *xdisplay;
-  GSource *source;
   KeyloggerFunc event_func;
   void *event_func_data;
 
+  GSource *source;
   int source_id;
 };
 
