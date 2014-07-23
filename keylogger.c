@@ -30,6 +30,7 @@
 
 struct _Keylogger {
   Display *xdisplay;
+  XRecordContext ctx;
   KeyloggerFunc event_func;
   void *event_func_data;
 
@@ -154,18 +155,18 @@ keylogger_init_xrecord (Keylogger *keylogger)
   int rec_maj = 1, rec_min = 1;
   XRecordQueryVersion (keylogger->xdisplay, &rec_maj, &rec_min);
 
-  XRecordContext ctx;
   XRecordClientSpec spec = XRecordAllClients;
 
   XRecordRange *range = XRecordAllocRange ();
   range->device_events.first = KeyPress;
   range->device_events.last = KeyRelease;
 
-  ctx = XRecordCreateContext (keylogger->xdisplay, 0, &spec, 1, &range, 1);
+  keylogger->ctx = XRecordCreateContext (keylogger->xdisplay, 0, &spec, 1, &range, 1);
 
   Xfree (range);
 
-  XRecordEnableContextAsync (keylogger->xdisplay, ctx, keylogger_intercept_proc, (XPointer) keylogger);
+  XRecordEnableContextAsync (keylogger->xdisplay, keylogger->ctx,
+                             keylogger_intercept_proc, (XPointer) keylogger);
 }
 
 static Display *
@@ -193,8 +194,10 @@ keylogger_new (Display       *xdisplay,
 void
 keylogger_free (Keylogger *keylogger)
 {
-  /* X11 will clean up the XRecordContext for us. */
-  XCloseDisplay (keylogger->display);
+  XRecordFreeContext (keylogger->xdisplay, keylogger->ctx);
+
+  XCloseDisplay (keylogger->xdisplay);
+
   g_slice_free (Keylogger, keylogger);
 }
 
