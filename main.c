@@ -118,6 +118,7 @@ app_init (Application *app)
   gtk_container_add (GTK_CONTAINER (vbox), scroll);
 
   textview = gtk_text_view_new ();
+  gtk_text_view_set_editable (GTK_TEXT_VIEW (textview), FALSE);
   gtk_container_add (GTK_CONTAINER (scroll), textview);
 
   app->buf = gtk_text_buffer_new (NULL);
