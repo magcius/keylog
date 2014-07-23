@@ -59,6 +59,7 @@ x_event_source_check (GSource *source)
 {
   XEventSource *x_source = (XEventSource *) source;
 
+  /* Gross. This actually dispatches events. */
   return XPending (x_source->xdisplay);
 }
 
@@ -67,15 +68,7 @@ x_event_source_dispatch (GSource     *source,
                          GSourceFunc  callback,
                          gpointer     user_data)
 {
-  XEventSource *x_source = (XEventSource *) source;
-
-  while (XPending (x_source->xdisplay))
-    {
-      /* Pump the events. This is enough to make the recording work. */
-      XEvent event;
-      XNextEvent (x_source->xdisplay, &event);
-    }
-
+  /* check already did our dispatch for us, since Xlib is terrible */
   return TRUE;
 }
 
