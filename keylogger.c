@@ -34,6 +34,7 @@ struct _Keylogger {
   KeyloggerFunc event_func;
   void *event_func_data;
 
+  gboolean enabled;
   GSource *source;
   int source_id;
 };
@@ -124,6 +125,9 @@ keylogger_intercept_proc (XPointer closure, XRecordInterceptData *data)
 {
   Keylogger *keylogger = (Keylogger *) closure;
 
+  if (!keylogger->enabled)
+    goto out;
+
   if (data->category != XRecordFromServer)
     goto out;
 
@@ -188,6 +192,9 @@ keylogger_new (Display       *xdisplay,
 
   keylogger_init_xrecord (keylogger);
 
+  keylogger->source = x_event_source_new (keylogger->xdisplay);
+  keylogger->source_id = g_source_attach (keylogger->source, NULL);
+
   return keylogger;
 }
 
@@ -198,22 +205,23 @@ keylogger_free (Keylogger *keylogger)
 
   XCloseDisplay (keylogger->xdisplay);
 
+  g_source_remove (keylogger->source_id);
+  keylogger->source_id = 0;
+
+  g_source_unref (keylogger->source);
+  keylogger->source = NULL;
+
   g_slice_free (Keylogger, keylogger);
 }
 
 void
 keylogger_start (Keylogger *keylogger)
 {
-  keylogger->source = x_event_source_new (keylogger->xdisplay);
-  keylogger->source_id = g_source_attach (keylogger->source, NULL);
+  keylogger->enabled = TRUE;
 }
 
 void
 keylogger_stop (Keylogger *keylogger)
 {
-  g_source_remove (keylogger->source_id);
-  keylogger->source_id = 0;
-
-  g_source_unref (keylogger->source);
-  keylogger->source = NULL;
+  keylogger->enabled = FALSE;
 }
