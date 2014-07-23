@@ -191,6 +191,14 @@ keylogger_new (Display       *xdisplay,
 }
 
 void
+keylogger_free (Keylogger *keylogger)
+{
+  /* X11 will clean up the XRecordContext for us. */
+  XCloseDisplay (keylogger->display);
+  g_slice_free (Keylogger, keylogger);
+}
+
+void
 keylogger_start (Keylogger *keylogger)
 {
   keylogger->source = x_event_source_new (keylogger->xdisplay);

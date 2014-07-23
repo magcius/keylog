@@ -33,5 +33,7 @@ Keylogger * keylogger_new (Display       *xdisplay,
                            KeyloggerFunc  event_func,
                            void          *event_func_data);
 
+void keylogger_free (Keylogger *keylogger);
+
 void keylogger_start (Keylogger *keylogger);
 void keylogger_stop (Keylogger *keylogger);
