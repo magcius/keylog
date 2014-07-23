@@ -131,7 +131,7 @@ keylogger_intercept_proc (XPointer closure, XRecordInterceptData *data)
   Keylogger *keylogger = (Keylogger *) closure;
 
   if (data->category != XRecordFromServer)
-    return;
+    goto out;
 
   xReply *reply = (xReply *) data->data;
   switch (reply->generic.type)
@@ -150,6 +150,9 @@ keylogger_intercept_proc (XPointer closure, XRecordInterceptData *data)
     default:
       g_assert_not_reached ();
     }
+
+ out:
+  XRecordFreeData (data);
 }
 
 static void
@@ -166,6 +169,9 @@ keylogger_init_xrecord (Keylogger *keylogger)
   range->device_events.last = KeyRelease;
 
   ctx = XRecordCreateContext (keylogger->xdisplay, 0, &spec, 1, &range, 1);
+
+  Xfree (range);
+
   XRecordEnableContextAsync (keylogger->xdisplay, ctx, keylogger_intercept_proc, (XPointer) keylogger);
 }
 
