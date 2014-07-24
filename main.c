@@ -181,8 +181,6 @@ draw_on_firefox_toggled (GtkToggleButton *toggle,
 static void
 app_init (Application *app)
 {
-  GtkWidget *vbox, *hbox, *logo, *title, *steal_focus, *keylog, *scroll, *textview, *draw_on_firefox;
-
   app->logo_pixbuf = gdk_pixbuf_new_from_file ("real.png", NULL);
   gtk_window_set_default_icon (app->logo_pixbuf);
 
@@ -194,39 +192,39 @@ app_init (Application *app)
   GdkDisplay *display = gtk_widget_get_display (app->window);
   app->xdisplay = GDK_DISPLAY_XDISPLAY (display);
 
-  vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
+  GtkWidget *vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
   gtk_container_add (GTK_CONTAINER (app->window), vbox);
 
-  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
+  GtkWidget *hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
   gtk_container_add (GTK_CONTAINER (vbox), hbox);
   gtk_widget_set_halign (hbox, GTK_ALIGN_CENTER);
 
   GdkPixbuf *logo_icon = gdk_pixbuf_scale_simple (app->logo_pixbuf, 64, 64, GDK_INTERP_BILINEAR);
-  logo = gtk_image_new_from_pixbuf (logo_icon);
+  GtkWidget *logo = gtk_image_new_from_pixbuf (logo_icon);
   g_object_unref (logo_icon);
   gtk_container_add (GTK_CONTAINER (hbox), logo);
 
-  title = gtk_label_new (NULL);
+  GtkWidget *title = gtk_label_new (NULL);
   gtk_label_set_markup (GTK_LABEL (title), "<span size='x-large' weight='bold'>" APP_TITLE "</span>");
   gtk_container_add (GTK_CONTAINER (hbox), title);
 
-  steal_focus = gtk_toggle_button_new_with_label ("Steal Focus");
+  GtkWidget *steal_focus = gtk_toggle_button_new_with_label ("Steal Focus");
   gtk_container_add (GTK_CONTAINER (vbox), steal_focus);
   g_signal_connect (steal_focus, "toggled",
                     G_CALLBACK (steal_focus_toggled), app);
 
-  keylog = gtk_toggle_button_new_with_label ("Keylog");
+  GtkWidget *keylog = gtk_toggle_button_new_with_label ("Keylog");
   gtk_container_add (GTK_CONTAINER (vbox), keylog);
   g_signal_connect (keylog, "toggled",
                     G_CALLBACK (keylog_toggled), app);
 
-  scroll = gtk_scrolled_window_new (NULL, NULL);
+  GtkWidget *scroll = gtk_scrolled_window_new (NULL, NULL);
   gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scroll),
                                        GTK_SHADOW_ETCHED_IN);
   gtk_widget_set_vexpand (scroll, TRUE);
   gtk_container_add (GTK_CONTAINER (vbox), scroll);
 
-  textview = gtk_text_view_new ();
+  GtkWidget *textview = gtk_text_view_new ();
   gtk_text_view_set_editable (GTK_TEXT_VIEW (textview), FALSE);
   gtk_container_add (GTK_CONTAINER (scroll), textview);
 
@@ -239,7 +237,7 @@ app_init (Application *app)
 
   app->keylogger = keylogger_new (app->xdisplay, app_key_event, app);
 
-  draw_on_firefox = gtk_toggle_button_new_with_label ("Draw on Firefox");
+  GtkWidget *draw_on_firefox = gtk_toggle_button_new_with_label ("Draw on Firefox");
   gtk_container_add (GTK_CONTAINER (vbox), draw_on_firefox);
   g_signal_connect (draw_on_firefox, "toggled",
                     G_CALLBACK (draw_on_firefox_toggled), app);
