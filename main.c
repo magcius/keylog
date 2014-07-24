@@ -176,17 +176,19 @@ draw_on_firefox_toggled (GtkToggleButton *toggle,
     }
 }
 
+#define APP_TITLE "RealPlayer 10.4 Special Deluxe Freemium Edition (Unregistered Trial)"
+
 static void
 app_init (Application *app)
 {
-  GtkWidget *vbox, *steal_focus, *record, *scroll, *textview, *draw_on_firefox;
+  GtkWidget *vbox, *hbox, *logo, *title, *steal_focus, *record, *scroll, *textview, *draw_on_firefox;
 
   app->logo_pixbuf = gdk_pixbuf_new_from_file ("real.png", NULL);
   gtk_window_set_default_icon (app->logo_pixbuf);
 
   app->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_widget_set_size_request (app->window, 700, 500);
-  gtk_window_set_title (GTK_WINDOW (app->window), "RealPlayer 10.4 Special Deluxe Freemium Edition (Unregistered Trial)");
+  gtk_window_set_title (GTK_WINDOW (app->window), APP_TITLE);
   gtk_container_set_border_width (GTK_CONTAINER (app->window), 6);
 
   GdkDisplay *display = gtk_widget_get_display (app->window);
@@ -194,6 +196,19 @@ app_init (Application *app)
 
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
   gtk_container_add (GTK_CONTAINER (app->window), vbox);
+
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
+  gtk_container_add (GTK_CONTAINER (vbox), hbox);
+  gtk_widget_set_halign (hbox, GTK_ALIGN_CENTER);
+
+  GdkPixbuf *logo_icon = gdk_pixbuf_scale_simple (app->logo_pixbuf, 64, 64, GDK_INTERP_BILINEAR);
+  logo = gtk_image_new_from_pixbuf (logo_icon);
+  g_object_unref (logo_icon);
+  gtk_container_add (GTK_CONTAINER (hbox), logo);
+
+  title = gtk_label_new (NULL);
+  gtk_label_set_markup (GTK_LABEL (title), "<span size='x-large' weight='bold'>" APP_TITLE "</span>");
+  gtk_container_add (GTK_CONTAINER (hbox), title);
 
   steal_focus = gtk_toggle_button_new_with_label ("Steal Focus");
   gtk_container_add (GTK_CONTAINER (vbox), steal_focus);
