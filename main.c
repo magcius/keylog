@@ -120,14 +120,14 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 }
 
 static void
-record_toggled (GtkToggleButton *toggle,
+keylog_toggled (GtkToggleButton *toggle,
                 gpointer         data)
 {
   Application *app = data;
 
   if (gtk_toggle_button_get_active (toggle))
     {
-      /* Clear the text buffer when starting to record */
+      /* Clear the text buffer when starting to keylog */
       gtk_text_buffer_set_text (app->buf, "", 0);
       keylogger_start (app->keylogger);
     }
@@ -181,7 +181,7 @@ draw_on_firefox_toggled (GtkToggleButton *toggle,
 static void
 app_init (Application *app)
 {
-  GtkWidget *vbox, *hbox, *logo, *title, *steal_focus, *record, *scroll, *textview, *draw_on_firefox;
+  GtkWidget *vbox, *hbox, *logo, *title, *steal_focus, *keylog, *scroll, *textview, *draw_on_firefox;
 
   app->logo_pixbuf = gdk_pixbuf_new_from_file ("real.png", NULL);
   gtk_window_set_default_icon (app->logo_pixbuf);
@@ -215,10 +215,10 @@ app_init (Application *app)
   g_signal_connect (steal_focus, "toggled",
                     G_CALLBACK (steal_focus_toggled), app);
 
-  record = gtk_toggle_button_new_with_label ("Record");
-  gtk_container_add (GTK_CONTAINER (vbox), record);
-  g_signal_connect (record, "toggled",
-                    G_CALLBACK (record_toggled), app);
+  keylog = gtk_toggle_button_new_with_label ("Keylog");
+  gtk_container_add (GTK_CONTAINER (vbox), keylog);
+  g_signal_connect (keylog, "toggled",
+                    G_CALLBACK (keylog_toggled), app);
 
   scroll = gtk_scrolled_window_new (NULL, NULL);
   gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scroll),
