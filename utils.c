@@ -40,6 +40,8 @@ find_window_recursively (Display *xdisplay,
     goto out;
   if (attrs.map_state != IsViewable)
     goto out;
+  if (attrs.x == -100 && attrs.y == -100)
+    goto out;
 
   {
     XClassHint class_hint = { 0 };
