@@ -105,6 +105,13 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
   KeySym sym = XKeycodeToKeysym (app->xdisplay, xkey->keycode, 0);
 G_GNUC_END_IGNORE_DEPRECATIONS
 
+  if (sym == XK_BackSpace)
+    {
+      GtkTextIter iter;
+      gtk_text_buffer_get_end_iter (app->buf, &iter);
+      gtk_text_buffer_backspace (app->buf, &iter, TRUE, TRUE);
+    }
+
   /* Gross dumb hack. */
   char chr = sym_to_char (sym);
 
